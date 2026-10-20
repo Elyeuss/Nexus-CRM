@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Import Customers</h1>
+<p>Upload a .csv with the header: <code>first_name,last_name,address,phone</code></p>
+
+<form method="post" enctype="multipart/form-data">
+  <input type="file" name="file" accept=".csv" required>
+  <button type="submit">Import</button>
+  <a href="/">Cancel</a>
+</form>
+{% endblock %}

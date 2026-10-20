@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+<head>
+  <title>Nexus CRM</title>
+</head>
+<body>
+  {% with messages = get_flashed_messages() %}
+    {% for m in messages %}
+      <p style="color:red">{{ m }}</p>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</body>
+</html>

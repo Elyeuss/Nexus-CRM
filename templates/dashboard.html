@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Nexus CRM</h1>
+<p>Logged in as {{ session['email'] }} | <a href="/logout">Logout</a></p>
+
+<p>
+  <a href="/add">+ Add Customer</a> |
+  <a href="/import">Import CSV</a> |
+  <a href="/export?q={{ q }}">Export CSV</a>
+</p>
+
+<form method="get">
+  <input type="text" name="q" placeholder="Search first or last name" value="{{ q }}">
+  <button type="submit">Search</button>
+  <a href="/">Clear</a>
+</form>
+
+<table border="1" cellpadding="6">
+  <tr>
+    <th>First Name</th>
+    <th>Last Name</th>
+    <th>Address</th>
+    <th>Phone</th>
+    <th>Actions</th>
+  </tr>
+  {% for c in customers %}
+  <tr>
+    <td>{{ c.first_name }}</td>
+    <td>{{ c.last_name }}</td>
+    <td>{{ c.address }}</td>
+    <td>{{ c.phone }}</td>
+    <td>
+      <a href="/edit/{{ c.id }}">Edit</a>
+      <form method="post" action="/delete/{{ c.id }}" style="display:inline"
+            onsubmit="return confirm('Delete {{ c.first_name }} {{ c.last_name }}?')">
+        <button type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="5">No customers found.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
