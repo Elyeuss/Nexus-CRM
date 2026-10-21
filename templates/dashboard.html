@@ -1,44 +1,135 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Nexus CRM</h1>
-<p>Logged in as {{ session['email'] }} | <a href="/logout">Logout</a></p>
+{% macro sort_header(label, col) %}
+  {% set active = (sort == col) %}
+  {% set next_dir = 'desc' if (active and direction == 'asc') else 'asc' %}
+  <a class="sort{{ ' active' if active }}"
+     href="{{ url_for('dashboard', q=q, sort=col, dir=next_dir) }}"
+     title="Click to sort {{ label }} {{ 'Z–A' if next_dir == 'desc' else 'A–Z' }}">
+    {{ label }}
+    <span class="arrows">
+      <span class="{{ 'on' if (active and direction == 'asc') }}">▲</span>
+      <span class="{{ 'on' if (active and direction == 'desc') }}">▼</span>
+    </span>
+  </a>
+{% endmacro %}
 
-<p>
-  <a href="/add">+ Add Customer</a> |
-  <a href="/import">Import CSV</a> |
-  <a href="/export?q={{ q }}">Export CSV</a>
-</p>
-
-<form method="get">
-  <input type="text" name="q" placeholder="Search first or last name" value="{{ q }}">
-  <button type="submit">Search</button>
-  <a href="/">Clear</a>
-</form>
-
-<table border="1" cellpadding="6">
-  <tr>
-    <th>First Name</th>
-    <th>Last Name</th>
-    <th>Address</th>
-    <th>Phone</th>
-    <th>Actions</th>
-  </tr>
-  {% for c in customers %}
-  <tr>
-    <td>{{ c.first_name }}</td>
-    <td>{{ c.last_name }}</td>
-    <td>{{ c.address }}</td>
-    <td>{{ c.phone }}</td>
-    <td>
-      <a href="/edit/{{ c.id }}">Edit</a>
-      <form method="post" action="/delete/{{ c.id }}" style="display:inline"
-            onsubmit="return confirm('Delete {{ c.first_name }} {{ c.last_name }}?')">
-        <button type="submit">Delete</button>
-      </form>
-    </td>
-  </tr>
-  {% else %}
-  <tr><td colspan="5">No customers found.</td></tr>
-  {% endfor %}
+<table>
+  <thead>
+    <tr class="toolbar">
+      <td>
+        <form id="bulk-form" method="post" action="/delete-selected"
+              onsubmit="return confirm('Delete the selected customers?')">
+          <button type="submit">Delete Selected</button>
+        </form>
+      </td>
+      <td colspan="2">
+        <form method="get">
+          <input type="text" name="q" placeholder="Search first or last name" value="{{ q }}">
+          <input type="hidden" name="sort" value="{{ sort }}">
+          <input type="hidden" name="dir" value="{{ direction }}">
+          <button type="submit">Search</button>
+          <a href="/">Clear</a>
+          <a href="/duplicates" class="btn-link">Check Duplicates</a>
+        </form>
+      </td>
+      <td colspan="4"></td>
+    </tr>
+    <tr>
+      <th><label><input type="checkbox" id="select-all"> Select All</label></th>
+<th>{{ sort_header('First Name', 'first_name') }}</th>
+<th>{{ sort_header('Last Name', 'last_name') }}</th>
+<th>{{ sort_header('DOB', 'dob') }}</th>
+<th>{{ sort_header('Address', 'address') }}</th>
+      <th>Phone</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for c in customers %}
+    <tr>
+      <td><input type="checkbox" name="ids" value="{{ c.id }}" form="bulk-form" class="row-check"></td>
+      <td>
+        <span class="view">{{ c.first_name }}</span>
+        <input class="edit" form="edit-{{ c.id }}" name="first_name" value="{{ c.first_name }}" required>
+      </td>
+      <td>
+        <span class="view">{{ c.last_name }}</span>
+        <input class="edit" form="edit-{{ c.id }}" name="last_name" value="{{ c.last_name }}" required>
+      </td>
+      <td>
+        <span class="view">{{ c.dob or '' }}</span>
+        <input class="edit" type="date" form="edit-{{ c.id }}" name="dob" value="{{ c.dob or '' }}">
+      </td>
+      <td>
+        <span class="view">{{ c.address or '' }}</span>
+        <input class="edit" form="edit-{{ c.id }}" name="address" value="{{ c.address or '' }}">
+      </td>
+      <td>
+        <span class="view">{{ c.phone or '' }}</span>
+        <input class="edit" form="edit-{{ c.id }}" name="phone" value="{{ c.phone or '' }}">
+      </td>
+      <td>
+        <form id="edit-{{ c.id }}" method="post" action="/edit/{{ c.id }}">
+          <input type="hidden" name="q" value="{{ q }}">
+        </form>
+        <span class="view">
+          <button type="button" class="edit-btn">Edit</button>
+          <form method="post" action="/delete/{{ c.id }}" style="display:inline"
+                onsubmit="return confirm('Delete {{ c.first_name }} {{ c.last_name }}?')">
+            <button type="submit">Delete</button>
+          </form>
+        </span>
+        <span class="edit">
+          <button type="submit" form="edit-{{ c.id }}">Save</button>
+          <button type="button" class="cancel-btn">Cancel</button>
+        </span>
+      </td>
+        </tr>
+    {% else %}
+    <tr><td colspan="7">No customers found.</td></tr>
+    {% endfor %}
+  </tbody>
 </table>
+{% if total %}
+<p class="count">Showing {{ (page - 1) * per_page + 1 }}–{{ (page - 1) * per_page + customers|length }} of {{ total }}</p>
+{% endif %}
+
+{% if pages > 1 %}
+<div class="pager">
+  {% if page > 1 %}
+    <a href="{{ url_for('dashboard', q=q, sort=sort, dir=direction, page=page - 1) }}">‹ Prev</a>
+  {% endif %}
+  {% for p in range(1, pages + 1) %}
+    {% if p == page %}
+      <span class="current">{{ p }}</span>
+    {% else %}
+      <a href="{{ url_for('dashboard', q=q, sort=sort, dir=direction, page=p) }}">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if page < pages %}
+    <a href="{{ url_for('dashboard', q=q, sort=sort, dir=direction, page=page + 1) }}">Next ›</a>
+  {% endif %}
+</div>
+{% endif %}
+<script>
+  document.getElementById('select-all').addEventListener('change', function () {
+    var all = this;
+    document.querySelectorAll('.row-check').forEach(function (box) {
+      box.checked = all.checked;
+    });
+  });
+  document.querySelectorAll('.edit-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.closest('tr').classList.add('editing');
+    });
+  });
+  document.querySelectorAll('.cancel-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var row = btn.closest('tr');
+      row.querySelectorAll('input.edit').forEach(function (i) { i.value = i.defaultValue; });
+      row.classList.remove('editing');
+    });
+  });
+</script>
 {% endblock %}

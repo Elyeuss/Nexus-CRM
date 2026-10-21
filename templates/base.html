@@ -1,14 +1,260 @@
 <!doctype html>
-<html>
+<html data-theme="light">
 <head>
   <title>Nexus CRM</title>
+  <script>
+    (function () {
+      var t = 'light';
+      try {
+        t = localStorage.getItem('theme') ||
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      } catch (e) {}
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
+  <style>
+:root {
+  --text: #1b1b1f;
+  --bar: rgba(255, 255, 255, 0.45);
+  --panel: rgba(255, 255, 255, 0.35);
+  --cell: rgba(255, 255, 255, 0.3);
+  --input: rgba(255, 255, 255, 0.7);
+  --border: rgba(0, 0, 0, 0.25);
+  --link: #0b57d0;
+  --flash: #b00020;
+  --tint: rgba(255, 255, 255, 0.05);
+  --accent: #3b6fd4;
+  --on-accent: #ffffff;
+}
+[data-theme="dark"] {
+  --text: #eceef2;
+  --bar: rgba(20, 22, 28, 0.5);
+  --panel: rgba(20, 22, 28, 0.4);
+  --cell: rgba(20, 22, 28, 0.3);
+  --input: rgba(30, 32, 40, 0.75);
+  --border: rgba(255, 255, 255, 0.25);
+  --link: #8ab4ff;
+  --flash: #ff8a8a;
+  --tint: rgba(0, 0, 0, 0.5);
+  --accent: #6c9bff;
+  --on-accent: #101a30;
+}
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(var(--tint), var(--tint)),
+                  url("{{ url_for('static', filename='background.jpg') }}") center / cover fixed;
+      min-height: 100vh;
+    }
+    a { color: var(--link); }
+
+    .topbar, .tabbar {
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--bar);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 24px;
+    }
+    .brand { font-size: 1.4rem; font-weight: bold; text-decoration: none; color: var(--text); }
+    .right { display: flex; align-items: center; gap: 14px; }
+
+    .tabbar { display: flex; justify-content: center; gap: 8px; padding: 8px 24px; }
+    .tabbar a {
+      padding: 6px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .tabbar a:hover { background: var(--input); }
+
+    .page { max-width: 1100px; margin: 24px auto; padding: 0 20px; text-align: center; }
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .flash { color: var(--flash); font-weight: bold; }
+
+    table { margin: 0 auto; border-collapse: collapse; background: var(--cell); }
+    th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; }
+
+    button, input[type=text], input[type=email], input[type=password], input[type=date] {
+      background: var(--input);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+    }
+    button { cursor: pointer; }
+:root { --accent: #3b6fd4; }
+[data-theme="dark"] { --accent: #6c9bff; }
+
+body { font-size: 15px; line-height: 1.5; }
+
+button, .tabbar a { transition: background 0.15s, transform 0.05s; }
+button:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+button:active { transform: translateY(1px); }
+form[action^="/delete/"] button:hover { background: #d93025; border-color: #d93025; color: #fff; }
+
+input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+th {
+  background: var(--bar);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+th, td { padding: 10px 14px; }
+tr:nth-child(even) td { background: rgba(127, 127, 127, 0.08); }
+tr:hover td { background: rgba(127, 127, 127, 0.18); }
+.tabbar a.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+  font-weight: bold;
+}
+.tabbar a:active { transform: translateY(1px); background: var(--accent); color: var(--on-accent); }
+.tabbar a.busy { opacity: 0.7; pointer-events: none; }
+.toolbar td {
+  border: none;
+  background: none !important;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+.toolbar input[type=text] { width: 160px; }
+td:nth-child(4), td:nth-child(6), th:nth-child(4), th:nth-child(6) {
+  white-space: nowrap;
+}
+td:nth-child(7) { white-space: nowrap; }
+.page { max-width: 1300px; }
+.edit { display: none; }
+tr.editing .view { display: none; }
+tr.editing .edit { display: inline-block; }
+tr.editing td { background: rgba(127, 127, 127, 0.2); }
+td input.edit { width: 100%; box-sizing: border-box; min-width: 90px; }
+input[type=date].edit {
+  background: #ffffff;
+  color: #1b1b1f;
+  color-scheme: light;
+}
+th a.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+th a.sort:hover { background: var(--input); border-color: var(--accent); }
+th a.sort.active { border-color: var(--accent); }
+
+.arrows { display: inline-flex; flex-direction: column; font-size: 0.6rem; line-height: 0.95; }
+.arrows span { opacity: 0.3; }
+.arrows span.on { opacity: 1; color: var(--accent); }
+
+.count { margin: 12px 0 0; opacity: 0.8; }
+.pager { margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pager a, .pager span { padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; text-decoration: none; }
+.pager a:hover { background: var(--input); }
+.pager .current { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: bold; }
+
+.login-card { max-width: 340px; margin: 30px auto; text-align: left; }
+.login-card h1 { text-align: center; margin-top: 0; }
+.login-card form { display: flex; flex-direction: column; gap: 14px; }
+.login-card label { display: flex; flex-direction: column; gap: 6px; }
+.login-card input { width: 100%; box-sizing: border-box; padding: 9px 10px; }
+.login-card button {
+  padding: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+  font-weight: bold;
+}
+.btn-link {
+  display: inline-block;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input);
+  color: var(--text);
+  text-decoration: none;
+}
+.btn-link:hover { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  </style>
 </head>
 <body>
-  {% with messages = get_flashed_messages() %}
-    {% for m in messages %}
-      <p style="color:red">{{ m }}</p>
-    {% endfor %}
-  {% endwith %}
-  {% block content %}{% endblock %}
+  <header class="topbar">
+    <a class="brand" href="/">Nexus CRM</a>
+    <div class="right">
+      {% if session.get('email') %}
+        <span>Logged in as {{ session['email'] }}</span>
+        <a href="/logout">Logout</a>
+      {% endif %}
+      <button id="theme-toggle" type="button">Dark mode</button>
+    </div>
+  </header>
+
+  {% if session.get('access_token') %}
+<nav class="tabbar">
+  <a href="/" class="{{ 'active' if request.endpoint == 'dashboard' }}">Customer List</a>
+  <a href="/add" class="{{ 'active' if request.endpoint == 'add_customer' }}">+ Add Customer</a>
+  <a href="/import" class="{{ 'active' if request.endpoint == 'import_csv' }}">Import CSV</a>
+  <a href="/export?q={{ request.args.get('q', '') }}&sort={{ request.args.get('sort', 'last_name') }}&dir={{ request.args.get('dir', 'asc') }}" id="export-link">Export CSV</a>
+</nav>
+  {% endif %}
+
+  <main class="page">
+    <div class="panel">
+      {% with messages = get_flashed_messages() %}
+        {% for m in messages %}
+          <p class="flash">{{ m }}</p>
+        {% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <script>
+    var btn = document.getElementById('theme-toggle');
+    function setLabel() {
+      var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      btn.textContent = dark ? 'Light mode' : 'Dark mode';
+    }
+    btn.addEventListener('click', function () {
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+      setLabel();
+    });
+    setLabel();
+        var exp = document.getElementById('export-link');
+    if (exp) {
+      exp.addEventListener('click', function () {
+        exp.classList.add('busy');
+        exp.textContent = 'Exporting...';
+        setTimeout(function () {
+          exp.classList.remove('busy');
+          exp.textContent = 'Export CSV';
+        }, 1500);
+      });
+    }
+  </script>
 </body>
 </html>

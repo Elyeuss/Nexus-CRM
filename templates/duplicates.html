@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Duplicate Customers</h1>
+
+{% if groups %}
+<p>Found {{ groups|length }} duplicate group(s) with {{ extras }} extra cop{{ 'y' if extras == 1 else 'ies' }}.
+The oldest record in each group is kept, and the extras are pre-selected for deletion.</p>
+
+<form id="dup-form" method="post" action="/delete-selected"
+      onsubmit="return confirm('Delete the selected duplicates?')">
+  <button type="submit">Delete Selected</button>
+  <a href="/">Back to list</a>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>Delete?</th>
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>DOB</th>
+      <th>Address</th>
+      <th>Phone</th>
+      <th>Added</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for g in groups %}
+      {% for c in g %}
+      <tr>
+        <td>
+          {% if loop.first %}
+            Keep
+          {% else %}
+            <input type="checkbox" name="ids" value="{{ c.id }}" form="dup-form" checked>
+          {% endif %}
+        </td>
+        <td>{{ c.first_name }}</td>
+        <td>{{ c.last_name }}</td>
+        <td>{{ c.dob or '' }}</td>
+        <td>{{ c.address or '' }}</td>
+        <td>{{ c.phone or '' }}</td>
+        <td>{{ (c.created_at or '')[:10] }}</td>
+      </tr>
+      {% endfor %}
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>No duplicates found.</p>
+<p><a href="/">Back to list</a></p>
+{% endif %}
+{% endblock %}

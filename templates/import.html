@@ -1,11 +1,20 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Import Customers</h1>
-<p>Upload a .csv with the header: <code>first_name,last_name,address,phone</code></p>
+<p>Upload a .csv with the header: <code>first_name,last_name,dob,address,phone</code></p>
+<p>Dates must be <code>YYYY-MM-DD</code>.</p>
 
 <form method="post" enctype="multipart/form-data">
+  <p>
+    <label>If a customer already exists (same first name, last name and DOB):
+      <select name="mode">
+        <option value="skip">Skip duplicates</option>
+        <option value="update">Update existing (address and phone)</option>
+        <option value="all">Import everything anyway</option>
+      </select>
+    </label>
+  </p>
   <input type="file" name="file" accept=".csv" required>
   <button type="submit">Import</button>
-  <a href="/">Cancel</a>
 </form>
 {% endblock %}

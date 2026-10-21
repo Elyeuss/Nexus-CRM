@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Possible Duplicate</h1>
+<p>A customer with the same first name, last name, and date of birth already exists.</p>
+
+<h3>Existing record</h3>
+<p>{{ existing.first_name }} {{ existing.last_name }} | DOB {{ existing.dob }}<br>
+{{ existing.address }} | {{ existing.phone }}</p>
+
+<h3>New entry</h3>
+<p>{{ new.first_name }} {{ new.last_name }} | DOB {{ new.dob }}<br>
+{{ new.address }} | {{ new.phone }}</p>
+
+<form method="post" action="/add">
+  <input type="hidden" name="first_name" value="{{ new.first_name }}">
+  <input type="hidden" name="last_name" value="{{ new.last_name }}">
+  <input type="hidden" name="dob" value="{{ new.dob }}">
+  <input type="hidden" name="address" value="{{ new.address }}">
+  <input type="hidden" name="phone" value="{{ new.phone }}">
+  <input type="hidden" name="existing_id" value="{{ existing.id }}">
+  <button type="submit" name="action" value="override">Override existing</button>
+  <button type="submit" name="action" value="create">Create new anyway</button>
+  <a href="/">Cancel</a>
+</form>
+{% endblock %}
